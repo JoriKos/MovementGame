@@ -16,7 +16,7 @@ public class Movement : MonoBehaviour
 
     private void Awake()
     {
-        playerObject = GameObject.Find("Player");
+        playerObject = GameObject.Find("PlayerBody");
         playerRB = playerObject.GetComponent<Rigidbody>();
         movementSpeed = 5f;
         jumpHeight = 500f;
