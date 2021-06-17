@@ -58,7 +58,7 @@ public class Movement : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Space) && isGrounded)
         {
-            playerObject.(Vector3.up * jumpHeight * Time.deltaTime);
+            playerRB.AddForce(Vector3.up * jumpHeight * Time.deltaTime);
             isGrounded = false;
         }
     }
