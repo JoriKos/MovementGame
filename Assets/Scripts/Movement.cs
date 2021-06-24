@@ -54,6 +54,10 @@ public class Movement : MonoBehaviour
             isMoving = false;
         }
         #endregion
+        if (Input.GetKeyDown(KeyCode.Space) && canWallRun)
+        {
+            isWallRunning = true;
+        }
     }
     private void FixedUpdate()
     {
@@ -96,9 +100,10 @@ public class Movement : MonoBehaviour
             }
         }
         #endregion
-        if (Input.GetKey(KeyCode.Space) && canWallRun)
+        if (isWallRunning)
         {
-            //playerRB.AddForce(Vector3.);
+            playerRB.AddForce(Vector3.up * 10f * Time.deltaTime);
+            playerRB.AddForce(Vector3.forward * (movementSpeed * 10f) * Time.deltaTime);
         }
     }
 
@@ -110,25 +115,26 @@ public class Movement : MonoBehaviour
             hasDoubleJumped = false;
             isGrounded = true;
         }
-        else
-        {
-            isGrounded = false;
-        }
         //Determines whether or not you can wallrun. (Is touching wall you can run on = yes. Isn't touching the ground = yes)
+        //Returns that player is no longer on the ground, can no longer 
         if(collision.gameObject.tag == "RunnableWall" && !isGrounded)
         {
             canWallRun = true;
             isGrounded = false;
-            hasDoubleJumped = true;
-            playerRB.useGravity = false;
+            playerRB.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
         }
     }
+
     private void OnCollisionExit(Collision collision)
     {
-        if(collision.gameObject.tag == "RunnableWall")
+        if (collision.gameObject.tag == "RunnableWall")
         {
-            playerRB.useGravity = true;
-            hasDoubleJumped = false;
+            canWallRun = false;
+            playerRB.constraints &= ~RigidbodyConstraints.FreezePositionY;
+        }
+        if (collision.gameObject.tag == "JumpableSurface")
+        {
+            isGrounded = false;
         }
     }
 }
