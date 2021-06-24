@@ -7,7 +7,7 @@ public class Movement : MonoBehaviour
     private Rigidbody playerRB;
     private GameObject playerObject;
     private float movementSpeed, jumpCooldown, jumpHeight, timer;
-    private bool isGrounded, canJump, hasDoubleJumped, canWallRun, isWallRunning, isJumping, isMoving;
+    private bool isGrounded, canJump, hasDoubleJumped, canWallRun, isWallRunning, isJumping, isMoving, isRunning;
 
 
     private void Awake()
@@ -58,6 +58,10 @@ public class Movement : MonoBehaviour
         {
             isWallRunning = true;
         }
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            isRunning = true;
+        }
     }
     private void FixedUpdate()
     {
@@ -100,11 +104,14 @@ public class Movement : MonoBehaviour
             }
         }
         #endregion
+        #region WallRunning
         if (isWallRunning)
         {
             playerRB.AddForce(Vector3.up * 10f * Time.deltaTime);
             playerRB.AddForce(Vector3.forward * (movementSpeed * 10f) * Time.deltaTime);
         }
+        #endregion
+        2
     }
 
 
