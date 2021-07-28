@@ -6,8 +6,9 @@ public class Movement : MonoBehaviour
 {
     private Rigidbody playerRB;
     private GameObject playerObject;
+    private Vector3 oppositeOfWall;
     private float movementSpeed, jumpCooldown, jumpHeight, timer;
-    private bool isGrounded, canJump, hasDoubleJumped, canWallRun, isWallRunning, isJumping, isMoving, isRunning;
+    private bool isGrounded, canJump, hasDoubleJumped, canWallRun, isWallRunning, isJumping, isMoving, isRunning; //Movement checks
 
 
     private void Awake()
@@ -57,6 +58,10 @@ public class Movement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && canWallRun)
         {
             isWallRunning = true;
+        }
+        else if (!canWallRun)
+        {
+            isWallRunning = false;
         }
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
@@ -109,9 +114,13 @@ public class Movement : MonoBehaviour
         {
             playerRB.AddForce(Vector3.up * 10f * Time.deltaTime);
             playerRB.AddForce(Vector3.forward * (movementSpeed * 10f) * Time.deltaTime);
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                playerRB.AddForce(oppositeOfWall * (movementSpeed * 2500f) * Time.deltaTime);
+                playerRB.AddForce(Vector3.up * (movementSpeed * 2500f) * Time.deltaTime);
+            }
         }
         #endregion
-        2
     }
 
 
@@ -124,8 +133,17 @@ public class Movement : MonoBehaviour
         }
         //Determines whether or not you can wallrun. (Is touching wall you can run on = yes. Isn't touching the ground = yes)
         //Returns that player is no longer on the ground, can no longer 
-        if(collision.gameObject.tag == "RunnableWall" && !isGrounded)
+        if (collision.gameObject.tag == "RunnableWall" && !isGrounded)
         {
+            if (this.transform.position.x < collision.gameObject.transform.position.x) //If wall is to the right
+            {
+                oppositeOfWall = Vector3.left;
+            }
+            else if (this.transform.position.x > collision.gameObject.transform.position.x) //If wall is to the left
+            {
+                oppositeOfWall = Vector3.right;
+            }
+
             canWallRun = true;
             isGrounded = false;
             playerRB.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
