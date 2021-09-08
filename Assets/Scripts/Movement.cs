@@ -88,7 +88,7 @@ public class Movement : MonoBehaviour
             }
             if (Input.GetKey(KeyCode.D))
             {
-                playerObject.transform.Translate(Vector3.right * movementSpeed * Time.deltaTime);
+                playerObject.transform.Translate(Vector3.right * (movementSpeed - 1.5f) * Time.deltaTime);
             }
         }
         #endregion
