@@ -179,7 +179,7 @@ public class Movement : MonoBehaviour
             if (!isGrounded && !hasDoubleJumped) //Double jump
             {
                 playerRB.AddForce(Vector3.up * (jumpHeight + 100f) * Time.deltaTime, ForceMode.Impulse); //Upwards force
-                playerRB.AddForce(this.transform.forward * 10f * Time.deltaTime, ForceMode.Impulse); //Forward force
+                //playerRB.AddForce(this.transform.forward * 10f * Time.deltaTime, ForceMode.Impulse); //Forward force
                 hasDoubleJumped = true;
                 canJump = false;
             }
