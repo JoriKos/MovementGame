@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
-    private Rigidbody playerRB;
+    [SerializeField] private Rigidbody playerRB;
     private GameObject playerObject;
     private Vector3 oppositeOfWall;
-    private float movementSpeed, jumpCooldown, jumpHeight, timer;
+    private float movementSpeed, jumpCooldown, jumpHeight, timer, sprintSpeed, wallrunTimer;
     private bool isGrounded, canJump, hasDoubleJumped, canWallRun, isWallRunning, isJumping, isMoving, isRunning; //Movement checks
 
 
@@ -15,16 +15,82 @@ public class Movement : MonoBehaviour
     {
         playerObject = GameObject.Find("PlayerBody");
         playerRB = playerObject.GetComponent<Rigidbody>();
-        movementSpeed = 5f;
         jumpHeight = 500f;
+        movementSpeed = 0;
         canJump = true;
         jumpCooldown = 1.2f;
         canWallRun = false;
         isJumping = false;
+        sprintSpeed = 0;
     }
 
     private void Update()
     {
+        #region MovementMinMax
+        #region X
+        if (playerRB.velocity.x >= 10)
+        {
+            playerRB.velocity = new Vector3(10, playerRB.velocity.y, playerRB.velocity.z);
+        }
+
+        if(playerRB.velocity.x <= -10)
+        {
+            playerRB.velocity = new Vector3(-10, playerRB.velocity.y, playerRB.velocity.z);
+        }
+        #endregion
+
+        #region Y
+        if (playerRB.velocity.y > 10)
+        {
+            playerRB.velocity = new Vector3(playerRB.velocity.x, 10, playerRB.velocity.z);
+        }
+
+        if (playerRB.velocity.y < -10)
+        {
+            playerRB.velocity = new Vector3(playerRB.velocity.x, -10, playerRB.velocity.z);
+        }
+        #endregion
+
+        #region Z
+        if (playerRB.velocity.z > 15 && !isRunning)
+        {
+            playerRB.velocity = new Vector3(playerRB.velocity.x, playerRB.velocity.y, 15);
+        }
+
+        if (playerRB.velocity.z > 20 && isRunning)
+        {
+            playerRB.velocity = new Vector3(playerRB.velocity.x, playerRB.velocity.y, 20);
+        }
+    
+        if(playerRB.velocity.z < -20)
+        {
+            playerRB.velocity = new Vector3(0, 0, -20);
+        }
+        #endregion
+        #endregion
+
+        #region MovementModifier
+        //When actively holding W/A/S/D, increase movement speed (Maximum of 5)
+        if (isMoving)
+        {
+            movementSpeed += 3.5f;
+            if (movementSpeed >= 5f)
+            {
+                movementSpeed = 5f;
+            }
+        }
+
+        //When not actively holding W/A/S/D, reduce movement speed (Minimum of 0)
+        if (movementSpeed > 0f && !isMoving)
+        {
+            movementSpeed -= 3.5f;
+            if (movementSpeed <= 0f)
+            {
+                movementSpeed = 0f;
+            }
+        }
+        #endregion
+
         #region JumpCheckAndCooldown
         //Check if jumpCooldown has expired and is able to jump again
         if (!canJump)
@@ -37,24 +103,30 @@ public class Movement : MonoBehaviour
             canJump = true;
         }
         #endregion
+
         #region ButtonCheck
         if (Input.GetKey(KeyCode.Space) && canJump)
         {
             isJumping = true;
         }
+
         else
         {
             isJumping = false;
         }
+
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
         {
             isMoving = true;
         }
+
         else
         {
             isMoving = false;
         }
         #endregion
+
+        #region WallRunning
         if (Input.GetKeyDown(KeyCode.Space) && canWallRun)
         {
             isWallRunning = true;
@@ -63,41 +135,51 @@ public class Movement : MonoBehaviour
         {
             isWallRunning = false;
         }
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        #endregion
+
+        #region Sprinting
+        if (Input.GetKey(KeyCode.LeftShift) && !isWallRunning)
         {
             isRunning = true;
         }
+        else
+        {
+            isRunning = false;
+        }
+        #endregion
     }
+
     private void FixedUpdate()
     {
-        //Debug.Log(isGrounded);
         #region WASDMovement
         if (isMoving)
         {
             if (Input.GetKey(KeyCode.W))
             {
-                playerObject.transform.Translate(Vector3.forward * movementSpeed * Time.deltaTime);
+                playerRB.AddForce(this.transform.forward * ((movementSpeed * 150) + sprintSpeed) * Time.deltaTime);
             }
             if (Input.GetKey(KeyCode.A))
             {
-                playerObject.transform.Translate(Vector3.left * movementSpeed * Time.deltaTime);
+                playerRB.AddForce(-this.transform.right * (movementSpeed * 150) * Time.deltaTime);
             }
             if (Input.GetKey(KeyCode.S))
             {
-                playerObject.transform.Translate(Vector3.back * movementSpeed * Time.deltaTime);
+                playerRB.AddForce(-this.transform.forward * (movementSpeed * 150) * Time.deltaTime);
             }
             if (Input.GetKey(KeyCode.D))
             {
-                playerObject.transform.Translate(Vector3.right * (movementSpeed - 1.5f) * Time.deltaTime);
+                playerRB.AddForce(this.transform.right * (movementSpeed * 150) * Time.deltaTime);
             }
         }
         #endregion
+
         #region Jump
         if (isJumping)
         {
             if (!isGrounded && !hasDoubleJumped) //Double jump
             {
-                playerRB.AddForce(Vector3.up * (jumpHeight + 100f) * Time.deltaTime, ForceMode.Impulse);
+                playerRB.AddForce(Vector3.up * (jumpHeight + 100f) * Time.deltaTime, ForceMode.Impulse); //Upwards force
+                playerRB.AddForce(this.transform.forward * 10f * Time.deltaTime, ForceMode.Impulse); //Forward force
                 hasDoubleJumped = true;
                 canJump = false;
             }
@@ -109,16 +191,29 @@ public class Movement : MonoBehaviour
             }
         }
         #endregion
+
         #region WallRunning
         if (isWallRunning)
         {
-            playerRB.AddForce(Vector3.up * 10f * Time.deltaTime);
+            playerRB.AddForce(Vector3.up * Physics.gravity.x * Time.deltaTime); //Upwards force to prevent falling down
             playerRB.AddForce(Vector3.forward * (movementSpeed * 10f) * Time.deltaTime);
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 playerRB.AddForce(oppositeOfWall * (movementSpeed * 2500f) * Time.deltaTime);
                 playerRB.AddForce(Vector3.up * (movementSpeed * 2500f) * Time.deltaTime);
             }
+        }
+        #endregion
+
+        #region Sprinting
+        if (isRunning)
+        {
+            sprintSpeed = 500;
+        }
+    
+        if (!isRunning)
+        {
+            sprintSpeed = 0;
         }
         #endregion
     }
