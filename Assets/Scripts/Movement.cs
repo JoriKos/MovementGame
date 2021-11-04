@@ -22,10 +22,13 @@ public class Movement : MonoBehaviour
         canWallRun = false;
         isJumping = false;
         sprintSpeed = 0;
+        playerRB.useGravity = true;
     }
 
     private void Update()
     {
+        Debug.Log(playerRB.velocity);
+
         #region MovementMinMax
         #region X
         if (playerRB.velocity.x >= 10)
@@ -109,7 +112,6 @@ public class Movement : MonoBehaviour
         {
             isJumping = true;
         }
-
         else
         {
             isJumping = false;
@@ -119,7 +121,6 @@ public class Movement : MonoBehaviour
         {
             isMoving = true;
         }
-
         else
         {
             isMoving = false;
@@ -151,24 +152,45 @@ public class Movement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        #region Bullshit
+        //I hate this
+        //if()
+        #endregion
+
         #region WASDMovement
         if (isMoving)
         {
             if (Input.GetKey(KeyCode.W))
             {
                 playerRB.AddForce(this.transform.forward * ((movementSpeed * 150) + sprintSpeed) * Time.deltaTime);
+                if (isJumping && !isWallRunning)
+                {
+                    playerRB.AddForce(-this.transform.up * 10);
+                }
             }
             if (Input.GetKey(KeyCode.A))
             {
                 playerRB.AddForce(-this.transform.right * (movementSpeed * 150) * Time.deltaTime);
+                if (isJumping && !isWallRunning)
+                {
+                    playerRB.AddForce(-this.transform.up * 10);
+                }
             }
             if (Input.GetKey(KeyCode.S))
             {
                 playerRB.AddForce(-this.transform.forward * (movementSpeed * 150) * Time.deltaTime);
+                if (isJumping && !isWallRunning)
+                {
+                    playerRB.AddForce(-this.transform.up * 10);
+                }
             }
             if (Input.GetKey(KeyCode.D))
             {
                 playerRB.AddForce(this.transform.right * (movementSpeed * 150) * Time.deltaTime);
+                if (isJumping && !isWallRunning)
+                {
+                    playerRB.AddForce(-this.transform.up * 10);
+                }
             }
         }
         #endregion
@@ -195,9 +217,9 @@ public class Movement : MonoBehaviour
         #region WallRunning
         if (isWallRunning)
         {
-            playerRB.AddForce(Vector3.up * Physics.gravity.x * Time.deltaTime); //Upwards force to prevent falling down
-            playerRB.AddForce(Vector3.forward * (movementSpeed * 10f) * Time.deltaTime);
-            if (Input.GetKeyDown(KeyCode.Space))
+            //playerRB.AddForce(Vector3.up * Physics.gravity.x * Time.deltaTime); //Upwards force to prevent falling down
+            //playerRB.AddForce(Vector3.forward * (movementSpeed * 10f) * Time.deltaTime);
+            if (Input.GetKey(KeyCode.Space))
             {
                 playerRB.AddForce(oppositeOfWall * (movementSpeed * 2500f) * Time.deltaTime);
                 playerRB.AddForce(Vector3.up * (movementSpeed * 2500f) * Time.deltaTime);
@@ -208,7 +230,7 @@ public class Movement : MonoBehaviour
         #region Sprinting
         if (isRunning)
         {
-            sprintSpeed = 500;
+            sprintSpeed = 5;
         }
     
         if (!isRunning)
